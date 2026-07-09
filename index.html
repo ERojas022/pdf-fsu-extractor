@@ -61,6 +61,7 @@ td,th{
 <input type="file" id="pdfFile" accept="application/pdf">
 
 <button onclick="leerPDF()">Procesar PDF</button>
+    <button onclick="exportarExcel()">Descargar Excel</button>
 
 <p id="prueba"></p>
 
@@ -132,70 +133,96 @@ extraerDatos(texto);
     lector.readAsArrayBuffer(archivo);
 
 }
+}
 function extraerDatos(texto){
 
     let tabla = document.getElementById("tabla");
     tabla.innerHTML = "";
 
-    // Une líneas partidas por el PDF
-    texto = texto.replace(/\n/g, " ");
-    texto = texto.replace(/\s+/g, " ");
+    texto = texto.replace(/\n/g," ");
+    texto = texto.replace(/\s+/g," ");
 
 
-    let patron = /(FSU|S100)\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+)-?([A-ZÁÉÍÓÚÑ ]+)/g;
+    let bloques = texto.split(/(?=FSU|S100)/);
 
 
-    let encontrado = false;
     let cantidad = 0;
 
-    let datos;
+
+    bloques.forEach(bloque => {
 
 
-    while((datos = patron.exec(texto)) !== null){
-
-        encontrado = true;
-        cantidad++;
-
-        let tipo = datos[1];
-        let codigo = datos[2];
-        let numero = datos[3];
-        let fecha = datos[4];
-        let dni = datos[5];
-        let nombre = datos[6].trim();
+        let datos = bloque.match(
+        /(FSU|S100)\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+)-?(.*?)(?=FSU|S100|$)/
+        );
 
 
-        let fila = `
-        <tr>
+        if(datos){
+
+
+            cantidad++;
+
+
+            let tipo = datos[1];
+            let codigo = datos[2];
+            let numero = datos[3];
+            let fecha = datos[4];
+
+            let persona = datos[5].trim();
+
+
+            let partes = persona.split("-");
+
+
+            let dni = partes[0].trim();
+
+            let nombre = partes.slice(1).join("-").trim();
+
+
+            let fila = `
+            <tr>
             <td>${tipo}</td>
             <td>${codigo}</td>
             <td>${numero}</td>
             <td>${fecha}</td>
             <td>${dni}</td>
             <td>${nombre}</td>
-        </tr>`;
+            </tr>`;
 
 
-        tabla.innerHTML += fila;
+            tabla.innerHTML += fila;
 
-    }
+        }
 
 
-    if(encontrado){
+    });
 
-        document.getElementById("estado").innerHTML =
-        "Se encontraron " + cantidad + " registros";
 
-    }else{
+    document.getElementById("estado").innerHTML =
+    "Se encontraron " + cantidad + " registros";
 
-        document.getElementById("estado").innerHTML =
-        "No se encontraron registros";
-
-    }
 
 }
 
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+<script>
+
+function exportarExcel(){
+
+let tabla = document.querySelector("table");
+
+let libro = XLSX.utils.table_to_book(tabla,{
+sheet:"Datos"
+});
+
+
+XLSX.writeFile(libro,"resultado_FSU_S100.xlsx");
+
+}
 
 </script>
-
 </body>
 </html>
