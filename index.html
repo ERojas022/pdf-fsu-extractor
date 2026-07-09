@@ -1,24 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extractor PDF FSU</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Extractor FSU</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f4f4f4;
+    padding:30px;
+}
+
+h1{
+    color:#0b5ed7;
+}
+
+input{
+    margin:20px 0;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:8px;
+}
+
+th{
+    background:#0b5ed7;
+    color:white;
+}
+</style>
+
 </head>
+
 <body>
 
-<h1>Extractor PDF FSU</h1>
+<h1>Extractor de PDF FSU</h1>
 
-<p>Esta aplicación extraerá:</p>
+<input type="file" id="pdfFile" accept=".pdf">
 
-<ul>
-    <li>Código</li>
-    <li>Número de Formato</li>
-    <li>Fecha de Operación</li>
-    <li>DNI - Informante</li>
-</ul>
+<p>En el siguiente paso haremos que lea el PDF automáticamente.</p>
 
-<input type="file" accept=".pdf">
+<table>
+
+<thead>
+
+<tr>
+<th>Código</th>
+<th>Número Formato</th>
+<th>Fecha</th>
+<th>DNI - Informante</th>
+</tr>
+
+</thead>
+
+<tbody id="resultado">
+
+</tbody>
+
+</table>
 
 </body>
 </html>
