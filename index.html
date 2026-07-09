@@ -6,12 +6,12 @@
 
 <title>Extractor FSU</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <style>
 body{
-    font-family:Arial;
-    background:#f4f4f4;
+    font-family: Arial, sans-serif;
+    background:#f2f2f2;
     padding:30px;
 }
 
@@ -19,24 +19,36 @@ h1{
     color:#0b5ed7;
 }
 
-input{
-    margin:20px 0;
+button{
+    background:#0b5ed7;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    cursor:pointer;
+    border-radius:5px;
 }
 
 table{
     width:100%;
+    margin-top:20px;
     border-collapse:collapse;
     background:white;
-}
-
-th,td{
-    border:1px solid #ddd;
-    padding:8px;
 }
 
 th{
     background:#0b5ed7;
     color:white;
+}
+
+td,th{
+    border:1px solid #ccc;
+    padding:8px;
+}
+
+#estado{
+    margin-top:15px;
+    color:green;
+    font-weight:bold;
 }
 </style>
 
@@ -44,30 +56,129 @@ th{
 
 <body>
 
-<h1>Extractor de PDF FSU</h1>
+<h1>Extractor de Información FSU</h1>
 
-<input type="file" id="pdfFile" accept=".pdf">
+<input type="file" id="pdfFile" accept="application/pdf">
 
-<p>En el siguiente paso haremos que lea el PDF automáticamente.</p>
+<button onclick="leerPDF()">Procesar PDF</button>
+
+<div id="estado"></div>
 
 <table>
-
 <thead>
-
 <tr>
 <th>Código</th>
-<th>Número Formato</th>
-<th>Fecha</th>
+<th>Número de Formato</th>
+<th>Fecha de Operación</th>
 <th>DNI - Informante</th>
 </tr>
-
 </thead>
 
-<tbody id="resultado">
-
+<tbody id="tabla">
 </tbody>
 
 </table>
+
+
+<script>
+
+async function leerPDF(){
+
+    const archivo = document.getElementById("pdfFile").files[0];
+
+    if(!archivo){
+        alert("Seleccione un PDF primero");
+        return;
+    }
+
+    document.getElementById("estado").innerHTML="Leyendo PDF...";
+
+    const lector = new FileReader();
+
+    lector.onload = async function(){
+
+        const pdf = await pdfjsLib.getDocument({
+            data: new Uint8Array(this.result)
+        }).promise;
+
+
+        let texto="";
+
+
+        for(let i=1;i<=pdf.numPages;i++){
+
+            const pagina = await pdf.getPage(i);
+
+            const contenido = await pagina.getTextContent();
+
+            contenido.items.forEach(item=>{
+                texto += item.str + " ";
+            });
+
+        }
+
+
+        extraerDatos(texto);
+
+    };
+
+
+    lector.readAsArrayBuffer(archivo);
+
+}
+
+
+
+function extraerDatos(texto){
+
+    let tabla=document.getElementById("tabla");
+
+    tabla.innerHTML="";
+
+
+    let patron=/FSU\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+-[A-ZÁÉÍÓÚÑ ]+)/g;
+
+
+    let encontrado=false;
+
+
+    let datos;
+
+
+    while((datos=patron.exec(texto))!==null){
+
+        encontrado=true;
+
+        let fila=`
+        <tr>
+        <td>${datos[1]}</td>
+        <td>${datos[2]}</td>
+        <td>${datos[3]}</td>
+        <td>${datos[4]}</td>
+        </tr>
+        `;
+
+
+        tabla.innerHTML+=fila;
+
+    }
+
+
+    if(encontrado){
+
+        document.getElementById("estado").innerHTML=
+        "PDF procesado correctamente";
+
+    }else{
+
+        document.getElementById("estado").innerHTML=
+        "No se encontraron registros FSU";
+
+    }
+
+}
+
+</script>
 
 </body>
 </html>
