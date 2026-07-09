@@ -62,6 +62,8 @@ td,th{
 
 <button onclick="leerPDF()">Procesar PDF</button>
 
+<p id="prueba"></p>
+
 <div id="estado"></div>
 
 <table>
@@ -83,6 +85,7 @@ td,th{
 <script>
 
 async function leerPDF(){
+    document.getElementById("prueba").innerHTML="Botón funcionando";
 
     const archivo = document.getElementById("pdfFile").files[0];
 
