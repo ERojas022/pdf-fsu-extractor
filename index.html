@@ -121,7 +121,7 @@ async function leerPDF(){
         }
 
 
-        alert(texto.substring(0,1500));
+        //alert(texto.substring(0,1500));
 extraerDatos(texto);
 
     };
@@ -130,57 +130,53 @@ extraerDatos(texto);
     lector.readAsArrayBuffer(archivo);
 
 }
-
-
-
 function extraerDatos(texto){
 
-    let tabla=document.getElementById("tabla");
+    let tabla = document.getElementById("tabla");
+    tabla.innerHTML = "";
 
-    tabla.innerHTML="";
+    // Limpia saltos de línea y espacios repetidos
+    texto = texto.replace(/\s+/g, " ");
 
-
-    let patron=/FSU\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+-[A-ZÁÉÍÓÚÑ ]+)/g;
-
-
-    let encontrado=false;
+    let patron = /FSU\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+-[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+)*)/g;
 
 
+    let encontrado = false;
+    let cantidad = 0;
     let datos;
 
 
-    while((datos=patron.exec(texto))!==null){
+    while ((datos = patron.exec(texto)) !== null){
 
-        encontrado=true;
+        encontrado = true;
+        cantidad++;
 
-        let fila=`
+        let fila = `
         <tr>
-        <td>${datos[1]}</td>
-        <td>${datos[2]}</td>
-        <td>${datos[3]}</td>
-        <td>${datos[4]}</td>
-        </tr>
-        `;
+            <td>${datos[1]}</td>
+            <td>${datos[2]}</td>
+            <td>${datos[3]}</td>
+            <td>${datos[4]}</td>
+        </tr>`;
 
-
-        tabla.innerHTML+=fila;
-
+        tabla.innerHTML += fila;
     }
 
 
     if(encontrado){
 
-        document.getElementById("estado").innerHTML=
-        "PDF procesado correctamente";
+        document.getElementById("estado").innerHTML =
+        "Se encontraron " + cantidad + " registros FSU";
 
     }else{
 
-        document.getElementById("estado").innerHTML=
+        document.getElementById("estado").innerHTML =
         "No se encontraron registros FSU";
 
     }
 
 }
+
 
 </script>
 
