@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Extractor FSU</title>
+<title>Extractor FSU S100</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
 <style>
+
 body{
     font-family: Arial, sans-serif;
     background:#f2f2f2;
@@ -19,6 +24,7 @@ h1{
     color:#0b5ed7;
 }
 
+
 button{
     background:#0b5ed7;
     color:white;
@@ -26,7 +32,9 @@ button{
     padding:10px 20px;
     cursor:pointer;
     border-radius:5px;
+    margin:5px;
 }
+
 
 table{
     width:100%;
@@ -35,126 +43,187 @@ table{
     background:white;
 }
 
+
 th{
     background:#0b5ed7;
     color:white;
 }
+
 
 td,th{
     border:1px solid #ccc;
     padding:8px;
 }
 
+
 #estado{
     margin-top:15px;
     color:green;
     font-weight:bold;
 }
+
 </style>
 
 </head>
 
+
 <body>
 
-<h1>Extractor de Información FSU</h1>
+
+<h1>Extractor de Información FSU / S100</h1>
+
 
 <input type="file" id="pdfFile" accept="application/pdf">
 
+
+<br><br>
+
+
 <button onclick="leerPDF()">Procesar PDF</button>
-    <button onclick="exportarExcel()">Descargar Excel</button>
+
+<button onclick="exportarExcel()">Descargar Excel</button>
+
 
 <p id="prueba"></p>
 
+
 <div id="estado"></div>
 
+
+
 <table>
+
+
 <thead>
+
 <tr>
+
 <th>Tipo</th>
 <th>Código</th>
 <th>Número</th>
 <th>Fecha</th>
 <th>DNI</th>
 <th>Nombre</th>
+
 </tr>
+
 </thead>
 
+
 <tbody id="tabla">
+
 </tbody>
+
 
 </table>
 
 
+
 <script>
 
+
 async function leerPDF(){
-    document.getElementById("prueba").innerHTML="Botón funcionando";
+
 
     const archivo = document.getElementById("pdfFile").files[0];
 
+
     if(!archivo){
+
         alert("Seleccione un PDF primero");
         return;
+
     }
+
 
     document.getElementById("estado").innerHTML="Leyendo PDF...";
 
+
     const lector = new FileReader();
+
+
 
     lector.onload = async function(){
 
+
         const pdf = await pdfjsLib.getDocument({
-            data: new Uint8Array(this.result)
+
+            data:new Uint8Array(this.result)
+
         }).promise;
+
 
 
         let texto="";
 
 
+
         for(let i=1;i<=pdf.numPages;i++){
+
 
             const pagina = await pdf.getPage(i);
 
+
             const contenido = await pagina.getTextContent();
 
+
+
             contenido.items.forEach(item=>{
+
                 texto += item.str + " ";
+
             });
+
 
         }
 
 
-        //alert(texto.substring(0,1500));
-extraerDatos(texto);
+
+        extraerDatos(texto);
+
+
 
     };
 
 
+
     lector.readAsArrayBuffer(archivo);
 
+
 }
-}
+
+
+
+
 function extraerDatos(texto){
 
-    let tabla = document.getElementById("tabla");
-    tabla.innerHTML = "";
 
-    texto = texto.replace(/\n/g," ");
-    texto = texto.replace(/\s+/g," ");
+    let tabla=document.getElementById("tabla");
 
-
-    let bloques = texto.split(/(?=FSU|S100)/);
+    tabla.innerHTML="";
 
 
-    let cantidad = 0;
+    texto=texto.replace(/\s+/g," ");
 
 
-    bloques.forEach(bloque => {
+
+    let bloques=texto.split(/(?=FSU|S100)/);
 
 
-        let datos = bloque.match(
+
+    let cantidad=0;
+
+
+
+    bloques.forEach(bloque=>{
+
+
+        let datos=bloque.match(
+
         /(FSU|S100)\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+)-?(.*?)(?=FSU|S100|$)/
+
         );
+
 
 
         if(datos){
@@ -163,66 +232,95 @@ function extraerDatos(texto){
             cantidad++;
 
 
-            let tipo = datos[1];
-            let codigo = datos[2];
-            let numero = datos[3];
-            let fecha = datos[4];
+            let tipo=datos[1];
 
-            let persona = datos[5].trim();
+            let codigo=datos[2];
 
+            let numero=datos[3];
 
-            let partes = persona.split("-");
+            let fecha=datos[4];
 
 
-            let dni = partes[0].trim();
 
-            let nombre = partes.slice(1).join("-").trim();
+            let persona=datos[5].trim();
 
 
-            let fila = `
+
+            let partes=persona.split("-");
+
+
+
+            let dni=partes[0].trim();
+
+
+            let nombre=partes.slice(1).join("-").trim();
+
+
+
+            tabla.innerHTML += `
+
             <tr>
+
             <td>${tipo}</td>
+
             <td>${codigo}</td>
+
             <td>${numero}</td>
+
             <td>${fecha}</td>
+
             <td>${dni}</td>
+
             <td>${nombre}</td>
-            </tr>`;
 
+            </tr>
 
-            tabla.innerHTML += fila;
+            `;
+
 
         }
+
 
 
     });
 
 
-    document.getElementById("estado").innerHTML =
-    "Se encontraron " + cantidad + " registros";
+
+    document.getElementById("estado").innerHTML=
+
+    "Se encontraron "+cantidad+" registros";
 
 
 }
 
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 
-<script>
+
 
 function exportarExcel(){
 
-let tabla = document.querySelector("table");
 
-let libro = XLSX.utils.table_to_book(tabla,{
-sheet:"Datos"
-});
+    let tabla=document.querySelector("table");
 
 
-XLSX.writeFile(libro,"resultado_FSU_S100.xlsx");
+
+    let libro=XLSX.utils.table_to_book(tabla,{
+
+        sheet:"Datos"
+
+    });
+
+
+
+    XLSX.writeFile(libro,"resultado_FSU_S100.xlsx");
 
 }
 
+
+
 </script>
+
+
 </body>
+
 </html>
