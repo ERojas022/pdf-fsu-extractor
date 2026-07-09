@@ -69,10 +69,12 @@ td,th{
 <table>
 <thead>
 <tr>
+<th>Tipo</th>
 <th>Código</th>
-<th>Número de Formato</th>
-<th>Fecha de Operación</th>
-<th>DNI - Informante</th>
+<th>Número</th>
+<th>Fecha</th>
+<th>DNI</th>
+<th>Nombre</th>
 </tr>
 </thead>
 
@@ -135,43 +137,58 @@ function extraerDatos(texto){
     let tabla = document.getElementById("tabla");
     tabla.innerHTML = "";
 
-    // Limpia saltos de línea y espacios repetidos
+    // Une líneas partidas por el PDF
+    texto = texto.replace(/\n/g, " ");
     texto = texto.replace(/\s+/g, " ");
 
-    let patron = /FSU\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+-[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+)*)/g;
+
+    let patron = /(FSU|S100)\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+)-?([A-ZÁÉÍÓÚÑ ]+)/g;
 
 
     let encontrado = false;
     let cantidad = 0;
+
     let datos;
 
 
-    while ((datos = patron.exec(texto)) !== null){
+    while((datos = patron.exec(texto)) !== null){
 
         encontrado = true;
         cantidad++;
 
+        let tipo = datos[1];
+        let codigo = datos[2];
+        let numero = datos[3];
+        let fecha = datos[4];
+        let dni = datos[5];
+        let nombre = datos[6].trim();
+
+
         let fila = `
         <tr>
-            <td>${datos[1]}</td>
-            <td>${datos[2]}</td>
-            <td>${datos[3]}</td>
-            <td>${datos[4]}</td>
+            <td>${tipo}</td>
+            <td>${codigo}</td>
+            <td>${numero}</td>
+            <td>${fecha}</td>
+            <td>${dni}</td>
+            <td>${nombre}</td>
         </tr>`;
 
+
         tabla.innerHTML += fila;
+
     }
 
 
     if(encontrado){
 
         document.getElementById("estado").innerHTML =
-        "Se encontraron " + cantidad + " registros FSU";
+        "Se encontraron " + cantidad + " registros";
 
     }else{
 
         document.getElementById("estado").innerHTML =
-        "No se encontraron registros FSU";
+        "No se encontraron registros";
 
     }
 
