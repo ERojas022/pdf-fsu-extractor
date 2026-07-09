@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 
 <meta charset="UTF-8">
@@ -9,60 +10,50 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 
 <style>
 
 body{
-    font-family: Arial, sans-serif;
-    background:#f2f2f2;
-    padding:30px;
+font-family:Arial;
+background:#f2f2f2;
+padding:30px;
 }
-
-h1{
-    color:#0b5ed7;
-}
-
 
 button{
-    background:#0b5ed7;
-    color:white;
-    border:none;
-    padding:10px 20px;
-    cursor:pointer;
-    border-radius:5px;
-    margin:5px;
+background:#0b5ed7;
+color:white;
+padding:10px 20px;
+border:none;
+border-radius:5px;
+cursor:pointer;
 }
-
 
 table{
-    width:100%;
-    margin-top:20px;
-    border-collapse:collapse;
-    background:white;
+width:100%;
+margin-top:20px;
+border-collapse:collapse;
+background:white;
 }
-
 
 th{
-    background:#0b5ed7;
-    color:white;
+background:#0b5ed7;
+color:white;
 }
-
 
 td,th{
-    border:1px solid #ccc;
-    padding:8px;
-}
-
-
-#estado{
-    margin-top:15px;
-    color:green;
-    font-weight:bold;
+border:1px solid #ccc;
+padding:8px;
 }
 
 </style>
+
 
 </head>
 
@@ -70,7 +61,7 @@ td,th{
 <body>
 
 
-<h1>Extractor de Información FSU / S100</h1>
+<h1>Extractor FSU / S100</h1>
 
 
 <input type="file" id="pdfFile" accept="application/pdf">
@@ -84,11 +75,7 @@ td,th{
 <button onclick="exportarExcel()">Descargar Excel</button>
 
 
-<p id="prueba"></p>
-
-
-<div id="estado"></div>
-
+<p id="estado"></p>
 
 
 <table>
@@ -97,14 +84,12 @@ td,th{
 <thead>
 
 <tr>
-
 <th>Tipo</th>
 <th>Código</th>
 <th>Número</th>
 <th>Fecha</th>
 <th>DNI</th>
 <th>Nombre</th>
-
 </tr>
 
 </thead>
@@ -125,69 +110,70 @@ td,th{
 async function leerPDF(){
 
 
-    const archivo = document.getElementById("pdfFile").files[0];
+let archivo=document.getElementById("pdfFile").files[0];
 
 
-    if(!archivo){
+if(!archivo){
 
-        alert("Seleccione un PDF primero");
-        return;
+alert("Seleccione un PDF");
 
-    }
+return;
 
-
-    document.getElementById("estado").innerHTML="Leyendo PDF...";
+}
 
 
-    const lector = new FileReader();
+document.getElementById("estado").innerHTML="Leyendo PDF...";
 
 
-
-    lector.onload = async function(){
-
-
-        const pdf = await pdfjsLib.getDocument({
-
-            data:new Uint8Array(this.result)
-
-        }).promise;
+let lector=new FileReader();
 
 
 
-        let texto="";
+lector.onload=async function(){
+
+
+let pdf=await pdfjsLib.getDocument({
+
+data:new Uint8Array(this.result)
+
+}).promise;
 
 
 
-        for(let i=1;i<=pdf.numPages;i++){
-
-
-            const pagina = await pdf.getPage(i);
-
-
-            const contenido = await pagina.getTextContent();
+let texto="";
 
 
 
-            contenido.items.forEach(item=>{
-
-                texto += item.str + " ";
-
-            });
+for(let i=1;i<=pdf.numPages;i++){
 
 
-        }
+let pagina=await pdf.getPage(i);
 
 
-
-        extraerDatos(texto);
+let contenido=await pagina.getTextContent();
 
 
 
-    };
+contenido.items.forEach(item=>{
+
+texto += item.str + " ";
+
+});
+
+
+}
 
 
 
-    lector.readAsArrayBuffer(archivo);
+extraerDatos(texto);
+
+
+
+};
+
+
+
+lector.readAsArrayBuffer(archivo);
 
 
 }
@@ -195,100 +181,65 @@ async function leerPDF(){
 
 
 
+
 function extraerDatos(texto){
 
 
-    let tabla=document.getElementById("tabla");
+let tabla=document.getElementById("tabla");
 
-    tabla.innerHTML="";
-
-
-    texto=texto.replace(/\s+/g," ");
+tabla.innerHTML="";
 
 
-
-    let bloques=texto.split(/(?=FSU|S100)/);
+texto=texto.replace(/\s+/g," ");
 
 
 
-    let cantidad=0;
+let patron=/(FSU|S100)\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+)-?([A-ZÁÉÍÓÚÑ ]+)/g;
 
 
 
-    bloques.forEach(bloque=>{
-
-
-        let datos=bloque.match(
-
-        /(FSU|S100)\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+)-?(.*?)(?=FSU|S100|$)/
-
-        );
+let contador=0;
 
 
 
-        if(datos){
-
-
-            cantidad++;
-
-
-            let tipo=datos[1];
-
-            let codigo=datos[2];
-
-            let numero=datos[3];
-
-            let fecha=datos[4];
+let datos;
 
 
 
-            let persona=datos[5].trim();
+while((datos=patron.exec(texto))!==null){
 
 
 
-            let partes=persona.split("-");
+contador++;
+
+
+tabla.innerHTML += `
+
+<tr>
+
+<td>${datos[1]}</td>
+
+<td>${datos[2]}</td>
+
+<td>${datos[3]}</td>
+
+<td>${datos[4]}</td>
+
+<td>${datos[5]}</td>
+
+<td>${datos[6]}</td>
+
+</tr>
+
+`;
+
+}
 
 
 
-            let dni=partes[0].trim();
+document.getElementById("estado").innerHTML=
 
-
-            let nombre=partes.slice(1).join("-").trim();
-
-
-
-            tabla.innerHTML += `
-
-            <tr>
-
-            <td>${tipo}</td>
-
-            <td>${codigo}</td>
-
-            <td>${numero}</td>
-
-            <td>${fecha}</td>
-
-            <td>${dni}</td>
-
-            <td>${nombre}</td>
-
-            </tr>
-
-            `;
-
-
-        }
-
-
-
-    });
-
-
-
-    document.getElementById("estado").innerHTML=
-
-    "Se encontraron "+cantidad+" registros";
+"Registros encontrados: "+contador;
 
 
 }
@@ -300,19 +251,18 @@ function extraerDatos(texto){
 function exportarExcel(){
 
 
-    let tabla=document.querySelector("table");
+let tabla=document.querySelector("table");
 
 
+let libro=XLSX.utils.table_to_book(tabla,{
 
-    let libro=XLSX.utils.table_to_book(tabla,{
+sheet:"Datos"
 
-        sheet:"Datos"
-
-    });
-
+});
 
 
-    XLSX.writeFile(libro,"resultado_FSU_S100.xlsx");
+XLSX.writeFile(libro,"resultado_FSU_S100.xlsx");
+
 
 }
 
