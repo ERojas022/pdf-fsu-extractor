@@ -156,7 +156,7 @@ let contenido=await pagina.getTextContent();
 
 contenido.items.forEach(item=>{
 
-texto += item.str + " ";
+    texto += item.str + "\n";
 
 });
 
@@ -178,10 +178,6 @@ lector.readAsArrayBuffer(archivo);
 
 }
 
-
-
-
-
 function extraerDatos(texto){
 
 
@@ -190,59 +186,83 @@ let tabla=document.getElementById("tabla");
 tabla.innerHTML="";
 
 
-texto=texto.replace(/\s+/g," ");
+// Limpieza del texto
+texto = texto.replace(/\r/g,"");
 
 
-
-let patron=/(FSU|S100)\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+)-?([A-ZÁÉÍÓÚÑ ]+)/g;
-
+// Detecta cada bloque desde FSU hasta antes del siguiente FSU
+let bloques = texto.split(/(?=FSU\s+\d+)/);
 
 
 let contador=0;
 
 
-
-let datos;
-
+bloques.forEach(bloque=>{
 
 
-while((datos=patron.exec(texto))!==null){
+    let datos = bloque.match(
+    
+    /FSU\s+(\d+)\s+(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(\d+)-([\s\S]*?)(?=\nFSU|\n*$)/
+    
+    );
 
 
+    if(datos){
 
-contador++;
+
+        contador++;
 
 
-tabla.innerHTML += `
+        let codigo = datos[1];
 
-<tr>
+        let numero = datos[2];
 
-<td>${datos[1]}</td>
+        let fecha = datos[3];
 
-<td>${datos[2]}</td>
+        let dni = datos[4];
 
-<td>${datos[3]}</td>
-
-<td>${datos[4]}</td>
-
-<td>${datos[5]}</td>
-
-<td>${datos[6]}</td>
-
-</tr>
-
-`;
-
-}
+        let nombre = datos[5]
+        .replace(/\n/g," ")
+        .replace(/\s+/g," ")
+        .trim();
 
 
 
-document.getElementById("estado").innerHTML=
+        tabla.innerHTML += `
 
+        <tr>
+
+        <td>FSU</td>
+
+        <td>${codigo}</td>
+
+        <td>${numero}</td>
+
+        <td>${fecha}</td>
+
+        <td>${dni}</td>
+
+        <td>${nombre}</td>
+
+        </tr>
+
+        `;
+
+
+    }
+
+
+});
+
+
+
+document.getElementById("estado").innerHTML =
 "Registros encontrados: "+contador;
 
 
 }
+
+
 
 
 
